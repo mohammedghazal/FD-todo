@@ -87,5 +87,21 @@ public class ApplicationDbContextInitialiser
 
             await _context.SaveChangesAsync();
         }
+
+        if (!_context.BackgroundColours.Any())
+        {
+            _context.BackgroundColours.AddRange(
+                new BackgroundColour { ColourName = "#FFFFFF" },
+                new BackgroundColour { ColourName = "#FF5733" },
+                new BackgroundColour { ColourName = "#FFC300" },
+                new BackgroundColour { ColourName = "#FFFF66" },
+                new BackgroundColour { ColourName = "#CCFF99" },
+                new BackgroundColour { ColourName = "#6666FF" },
+                new BackgroundColour { ColourName = "#9966CC" },
+                new BackgroundColour { ColourName = "#999999" }
+        );
+
+            await _context.SaveChangesAsync();
+        }
     }
 }
