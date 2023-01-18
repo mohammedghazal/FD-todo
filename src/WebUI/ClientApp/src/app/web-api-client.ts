@@ -15,6 +15,79 @@ import { HttpClient, HttpHeaders, HttpResponse, HttpResponseBase } from '@angula
 
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL');
 
+export interface IBackgroundColourClient {
+    get(): Observable<BackgroundColourDto[]>;
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class BackgroundColourClient implements IBackgroundColourClient {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "";
+    }
+
+    get(): Observable<BackgroundColourDto[]> {
+        let url_ = this.baseUrl + "/api/BackgroundColour";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGet(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<BackgroundColourDto[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<BackgroundColourDto[]>;
+        }));
+    }
+
+    protected processGet(response: HttpResponseBase): Observable<BackgroundColourDto[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(BackgroundColourDto.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+}
+
 export interface ITodoItemsClient {
     getTodoItemsWithPagination(listId: number | undefined, pageNumber: number | undefined, pageSize: number | undefined): Observable<PaginatedListOfTodoItemBriefDto>;
     create(command: CreateTodoItemCommand): Observable<number>;
@@ -653,6 +726,46 @@ export class WeatherForecastClient implements IWeatherForecastClient {
     }
 }
 
+export class BackgroundColourDto implements IBackgroundColourDto {
+    id?: number;
+    colourName?: string | undefined;
+
+    constructor(data?: IBackgroundColourDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.colourName = _data["colourName"];
+        }
+    }
+
+    static fromJS(data: any): BackgroundColourDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new BackgroundColourDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["colourName"] = this.colourName;
+        return data;
+    }
+}
+
+export interface IBackgroundColourDto {
+    id?: number;
+    colourName?: string | undefined;
+}
+
 export class PaginatedListOfTodoItemBriefDto implements IPaginatedListOfTodoItemBriefDto {
     items?: TodoItemBriefDto[];
     pageNumber?: number;
@@ -767,6 +880,7 @@ export interface ITodoItemBriefDto {
 
 export class CreateTodoItemCommand implements ICreateTodoItemCommand {
     listId?: number;
+    backgroundColourId?: number;
     title?: string | undefined;
 
     constructor(data?: ICreateTodoItemCommand) {
@@ -781,6 +895,7 @@ export class CreateTodoItemCommand implements ICreateTodoItemCommand {
     init(_data?: any) {
         if (_data) {
             this.listId = _data["listId"];
+            this.backgroundColourId = _data["backgroundColourId"];
             this.title = _data["title"];
         }
     }
@@ -795,6 +910,7 @@ export class CreateTodoItemCommand implements ICreateTodoItemCommand {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["listId"] = this.listId;
+        data["backgroundColourId"] = this.backgroundColourId;
         data["title"] = this.title;
         return data;
     }
@@ -802,6 +918,7 @@ export class CreateTodoItemCommand implements ICreateTodoItemCommand {
 
 export interface ICreateTodoItemCommand {
     listId?: number;
+    backgroundColourId?: number;
     title?: string | undefined;
 }
 
@@ -852,6 +969,7 @@ export interface IUpdateTodoItemCommand {
 export class UpdateTodoItemDetailCommand implements IUpdateTodoItemDetailCommand {
     id?: number;
     listId?: number;
+    backgroundColourId?: number;
     priority?: PriorityLevel;
     note?: string | undefined;
 
@@ -868,6 +986,7 @@ export class UpdateTodoItemDetailCommand implements IUpdateTodoItemDetailCommand
         if (_data) {
             this.id = _data["id"];
             this.listId = _data["listId"];
+            this.backgroundColourId = _data["backgroundColourId"];
             this.priority = _data["priority"];
             this.note = _data["note"];
         }
@@ -884,6 +1003,7 @@ export class UpdateTodoItemDetailCommand implements IUpdateTodoItemDetailCommand
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
         data["listId"] = this.listId;
+        data["backgroundColourId"] = this.backgroundColourId;
         data["priority"] = this.priority;
         data["note"] = this.note;
         return data;
@@ -893,6 +1013,7 @@ export class UpdateTodoItemDetailCommand implements IUpdateTodoItemDetailCommand
 export interface IUpdateTodoItemDetailCommand {
     id?: number;
     listId?: number;
+    backgroundColourId?: number;
     priority?: PriorityLevel;
     note?: string | undefined;
 }
@@ -1062,6 +1183,7 @@ export class TodoItemDto implements ITodoItemDto {
     title?: string | undefined;
     done?: boolean;
     priority?: number;
+    backgroundColourId?: number;
     note?: string | undefined;
 
     constructor(data?: ITodoItemDto) {
@@ -1080,6 +1202,7 @@ export class TodoItemDto implements ITodoItemDto {
             this.title = _data["title"];
             this.done = _data["done"];
             this.priority = _data["priority"];
+            this.backgroundColourId = _data["backgroundColourId"];
             this.note = _data["note"];
         }
     }
@@ -1098,6 +1221,7 @@ export class TodoItemDto implements ITodoItemDto {
         data["title"] = this.title;
         data["done"] = this.done;
         data["priority"] = this.priority;
+        data["backgroundColourId"] = this.backgroundColourId;
         data["note"] = this.note;
         return data;
     }
@@ -1109,6 +1233,7 @@ export interface ITodoItemDto {
     title?: string | undefined;
     done?: boolean;
     priority?: number;
+    backgroundColourId?: number;
     note?: string | undefined;
 }
 

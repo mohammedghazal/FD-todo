@@ -1,9 +1,9 @@
 import { Component, TemplateRef, OnInit } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, NgModel } from '@angular/forms';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import {
-  TodoListsClient, TodoItemsClient,
-  TodoListDto, TodoItemDto, PriorityLevelDto,
+  TodoListsClient, TodoItemsClient, BackgroundColourClient,
+  TodoListDto, TodoItemDto, PriorityLevelDto, BackgroundColourDto,
   CreateTodoListCommand, UpdateTodoListCommand,
   CreateTodoItemCommand, UpdateTodoItemDetailCommand
 } from '../web-api-client';
@@ -20,6 +20,8 @@ export class TodoComponent implements OnInit {
   deleteCountDownInterval: any;
   lists: TodoListDto[];
   priorityLevels: PriorityLevelDto[];
+  backgroundColours: BackgroundColourDto[];
+  selectedColour: BackgroundColourDto;
   selectedList: TodoListDto;
   selectedItem: TodoItemDto;
   newListEditor: any = {};
@@ -31,6 +33,7 @@ export class TodoComponent implements OnInit {
   itemDetailsFormGroup = this.fb.group({
     id: [null],
     listId: [null],
+    backgroundColourId: [null],
     priority: [''],
     note: ['']
   });
@@ -39,6 +42,7 @@ export class TodoComponent implements OnInit {
   constructor(
     private listsClient: TodoListsClient,
     private itemsClient: TodoItemsClient,
+    private coloursClient: BackgroundColourClient,
     private modalService: BsModalService,
     private fb: FormBuilder
   ) { }
@@ -51,6 +55,13 @@ export class TodoComponent implements OnInit {
         if (this.lists.length) {
           this.selectedList = this.lists[0];
         }
+      },
+      error => console.error(error)
+    );
+
+    this.coloursClient.get().subscribe(
+      result => {
+        this.backgroundColours = result;
       },
       error => console.error(error)
     );
@@ -162,6 +173,7 @@ export class TodoComponent implements OnInit {
         }
 
         this.selectedItem.priority = item.priority;
+        this.selectedItem.backgroundColourId =item.backgroundColourId;
         this.selectedItem.note = item.note;
         this.itemDetailsModalRef.hide();
         this.itemDetailsFormGroup.reset();
@@ -171,14 +183,15 @@ export class TodoComponent implements OnInit {
   }
 
   addItem() {
-    const item = {
+    const item = new TodoItemDto( {
       id: 0,
       listId: this.selectedList.id,
+      backgroundColourId:  0,
       priority: this.priorityLevels[0].value,
       title: '',
       done: false
-    } as TodoItemDto;
-
+    }) ;
+    
     this.selectedList.items.push(item);
     const index = this.selectedList.items.length - 1;
     this.editItem(item, 'itemTitle' + index);

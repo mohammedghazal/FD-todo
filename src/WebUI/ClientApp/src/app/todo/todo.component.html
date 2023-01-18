@@ -48,7 +48,7 @@
                 class="form-control item-input-control" [(ngModel)]="item.title" (keyup.enter)="updateItem(item, true)"
                 (blur)="updateItem(item)" autofocus="autofocus" />
               <div class="todo-item-title" *ngIf="item != selectedItem" [ngClass]="{ 'done-todo': item.done }"
-                (click)="editItem(item, 'itemTitle' + i)" class="form-control item-input-control">
+                (click)="editItem(item, 'itemTitle' + i)" class="form-control item-input-control"  >
                 <span>{{ item.title }}</span>
               </div>
             </div>
@@ -115,6 +115,12 @@
         <label for="list">List</label>
         <select class="form-control" formControlName="listId">
           <option [ngValue]="list.id" *ngFor="let list of lists">{{ list.title }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="backgroundColour">Background Colour </label>
+        <select class="form-control" formControlName="backgroundColourId" >
+          <option *ngFor="let colour of backgroundColours" [value]="colour.id" [style.background-color]="colour.colourName">{{colour.id}}</option>
         </select>
       </div>
       <div class="form-group">
