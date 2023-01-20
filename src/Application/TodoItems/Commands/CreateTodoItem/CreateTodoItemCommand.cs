@@ -30,6 +30,7 @@ public class CreateTodoItemCommandHandler : IRequestHandler<CreateTodoItemComman
             ListId = request.ListId,
             BackgroundColourId = request.BackgroundColourId,    
             Title = request.Title,
+           //todo
             Done = false
         };
 

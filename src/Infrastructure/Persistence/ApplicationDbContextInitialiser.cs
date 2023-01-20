@@ -103,5 +103,15 @@ public class ApplicationDbContextInitialiser
 
             await _context.SaveChangesAsync();
         }
+
+        if (!_context.Tags.Any())
+        {
+            _context.Tags.AddRange(
+                new Tag { TagName = "in progress" },
+                new Tag { TagName = "school" }
+        );
+
+            await _context.SaveChangesAsync();
+        }
     }
 }
