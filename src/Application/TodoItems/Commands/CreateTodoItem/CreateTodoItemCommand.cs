@@ -10,7 +10,7 @@ public record CreateTodoItemCommand : IRequest<int>
     public int ListId { get; init; }
 
     public int BackgroundColourId { get; init; }
-
+ 
     public string? Title { get; init; }
 }
 
@@ -30,7 +30,7 @@ public class CreateTodoItemCommandHandler : IRequestHandler<CreateTodoItemComman
             ListId = request.ListId,
             BackgroundColourId = request.BackgroundColourId,    
             Title = request.Title,
-           //todo
+           
             Done = false
         };
 

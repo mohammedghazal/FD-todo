@@ -11,13 +11,15 @@
       <div class="clearfix">
         <h2 class="float-start">Lists</h2>
         <button class="btn btn-default float-end" title="New List..."
-          (click)="showNewListModal(newListModalTemplate)">
+                (click)="showNewListModal(newListModalTemplate)">
           <i class="bi bi-journal-plus"></i>
         </button>
       </div>
+      
       <ul class="list-group">
+
         <li *ngFor="let list of lists; index as i" class="list-group-item"
-          [ngClass]="{ 'active': selectedList == list }" (click)="selectedList = list">
+            [ngClass]="{ 'active': selectedList == list }" (click)="selectedList = list">
           <div class="clearfix">
             <div class="float-start">
               {{ list.title }}
@@ -30,43 +32,64 @@
       </ul>
     </div>
     <div class="col-sm-8" *ngIf="selectedList">
+
       <div class="clearfix">
         <h2 class="float-start">{{ selectedList.title }}</h2>
         <button id="listOptions" class="btn btn-default float-end" title="List Options..."
-          (click)="showListOptionsModal(listOptionsModalTemplate)">
+                (click)="showListOptionsModal(listOptionsModalTemplate)">
           <i class="bi bi-three-dots-vertical"></i>
         </button>
       </div>
-      <ul id="todo-items" class="list-group mb-2">
-        <li class="list-group-item" *ngFor="let item of selectedList.items; index as i">
-          <div class="d-flex">
-            <div class="todo-item-checkbox">
-              <input type="checkbox" [(ngModel)]="item.done" (change)="updateItem(item)" />
-            </div>
-            <div class="flex-fill">
-              <input id="{{ 'itemTitle' + i }}" *ngIf="item == selectedItem" type="text"
-                class="form-control item-input-control" [(ngModel)]="item.title" (keyup.enter)="updateItem(item, true)"
-                (blur)="updateItem(item)" autofocus="autofocus" />
-              <div class="todo-item-title" *ngIf="item != selectedItem" [ngClass]="{ 'done-todo': item.done }"
-                (click)="editItem(item, 'itemTitle' + i)" class="form-control item-input-control"  >
-                <span>{{ item.title }}</span>
-              </div>
-            </div>
-            <div class="todo-item-commands">
-              <button *ngIf="item.id != 0" (click)="showItemDetailsModal(itemDetailsModalTemplate, item)"
-                class="btn btn-default btn-xs" role="button">
-                <i class="bi bi-three-dots-vertical"></i>
-              </button>
-            </div>
+
+      <div class="row filter-bar">
+        <div class="col-sm-6">
+          <div class="search-container">
+            <input type="text" placeholder="Search ..." [(ngModel)]="searchQuery" (ngModelChange)="onSearchQuery(searchQuery,selectedList.id)">
           </div>
-        </li>
-        <li class="list-group-item" (click)="addItem()">
-          <button class="btn btn-default">Add Item...</button>
-        </li>
-      </ul>
+          </div>
+        <div class="col-sm-6">
+            <ng-multiselect-dropdown [placeholder]="'Select The Tags'"
+                                     [settings]="dropdownSettings"
+                                     [data]="this.tags"
+                                     (onSelect)="onTagsFilter(selectedList.id)"
+                                     (onDeSelect)="onTagsFilter(selectedList.id)"
+                                     [(ngModel)]="tagsFilterValues">
+            </ng-multiselect-dropdown>
+        </div>
+        </div>
+        
+          <ul id="todo-items" class="list-group mb-2">
+            <li class="list-group-item" *ngFor="let item of filteredItems.length == 0 ? selectedList.items : filteredItems ; index as i" [style.background-color]="getColour(item)">
+              <div class="d-flex">
+                <div class="todo-item-checkbox">
+                  <input type="checkbox" [(ngModel)]="item.done" (change)="updateItem(item)"/>
+                </div>
+                <div class="flex-fill">
+                  <input id="{{ 'itemTitle' + i }}" *ngIf="item == selectedItem" type="text"
+                         class="form-control item-input-control" [(ngModel)]="item.title" (keyup.enter)="updateItem(item, true)"
+                         (blur)="updateItem(item)" autofocus="autofocus" />
+                  <div class="todo-item-title" *ngIf="item != selectedItem" [ngClass]="{ 'done-todo': item.done }"
+                       (click)="editItem(item, 'itemTitle' + i)" class="form-control item-input-control">
+                    <span>
+                      {{item.title}}
+                    </span>
+                  </div>
+                </div>
+                <div class="todo-item-commands">
+                  <button *ngIf="item.id != 0" (click)="showItemDetailsModal(itemDetailsModalTemplate, item)"
+                          class="btn btn-default btn-xs" role="button">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                </div>
+              </div>
+            </li>
+            <li class="list-group-item" (click)="addItem()">
+              <button class="btn btn-default">Add Item...</button>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
 <div *ngIf="debug">
   <pre>{{ lists | json }}</pre>
@@ -83,7 +106,7 @@
     <div class="form-group">
       <label for="inputListTitle">Title</label>
       <input type="text" class="form-control" id="inputListTitle" placeholder="List name..."
-        [(ngModel)]="listOptionsEditor.title" (keyup.enter)="updateListOptions()" />
+             [(ngModel)]="listOptionsEditor.title" (keyup.enter)="updateListOptions()" />
     </div>
     <div *ngIf="debug">
       <pre>{{ listOptionsEditor | json }}</pre>
@@ -119,10 +142,21 @@
       </div>
       <div class="form-group">
         <label for="backgroundColour">Background Colour </label>
-        <select class="form-control" formControlName="backgroundColourId" >
+        <select class="form-control" formControlName="backgroundColourId">
           <option *ngFor="let colour of backgroundColours" [value]="colour.id" [style.background-color]="colour.colourName">{{colour.id}}</option>
         </select>
       </div>
+
+
+      <div class="form-group">
+        <ng-multiselect-dropdown 
+                                 [placeholder]="'Select The Tags'"
+                                 [settings]="dropdownSettings"
+                                 [data]="this.tags"
+                                 formControlName="tags">
+        </ng-multiselect-dropdown>
+      </div>       
+
       <div class="form-group">
         <label for="priority">Priority</label>
         <select class="form-control" formControlName="priority">
@@ -183,7 +217,7 @@
     <div class="form-group">
       <label for="title">Title</label>
       <input type="text" class="form-control" id="title" placeholder="List title..." [(ngModel)]="newListEditor.title"
-        [ngClass]="{ 'is-invalid': newListEditor.error }" (keyup.enter)="addList()" />
+             [ngClass]="{ 'is-invalid': newListEditor.error }" (keyup.enter)="addList()" />
       <div *ngIf="newListEditor.error" class="invalid-feedback">
         {{ newListEditor.error }}
       </div>

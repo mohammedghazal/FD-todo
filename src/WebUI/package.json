@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "ngx-confirm-box": "^0.0.3"
+  }
+}

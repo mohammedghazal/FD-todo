@@ -1,13 +1,14 @@
 import { Component, TemplateRef, OnInit } from '@angular/core';
-import { FormBuilder, NgModel } from '@angular/forms';
+import { FormBuilder, FormGroup, NgModel, FormControl } from '@angular/forms';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import {
-  TodoListsClient, TodoItemsClient, BackgroundColourClient,
+  TodoListsClient, TodoItemsClient, BackgroundColourClient, TagsClient,
   TodoListDto, TodoItemDto, PriorityLevelDto, BackgroundColourDto,
   CreateTodoListCommand, UpdateTodoListCommand,
-  CreateTodoItemCommand, UpdateTodoItemDetailCommand
+  CreateTodoItemCommand, UpdateTodoItemDetailCommand, TagDto, CreateTagCommand
 } from '../web-api-client';
-
+import { IDropdownSettings, NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
+ 
 @Component({
   selector: 'app-todo-component',
   templateUrl: './todo.component.html',
@@ -20,6 +21,12 @@ export class TodoComponent implements OnInit {
   deleteCountDownInterval: any;
   lists: TodoListDto[];
   priorityLevels: PriorityLevelDto[];
+  dropdownSettings: IDropdownSettings = {};
+  dropDownForm: FormGroup;
+  dropdownList = [];
+  selectedTags = [];
+  tags: TagDto[];
+  selectedTag: TagDto;
   backgroundColours: BackgroundColourDto[];
   selectedColour: BackgroundColourDto;
   selectedList: TodoListDto;
@@ -27,6 +34,8 @@ export class TodoComponent implements OnInit {
   newListEditor: any = {};
   listOptionsEditor: any = {};
   newListModalRef: BsModalRef;
+  filteredItems: any = [];
+  searchQuery = '';
   listOptionsModalRef: BsModalRef;
   deleteListModalRef: BsModalRef;
   itemDetailsModalRef: BsModalRef;
@@ -34,15 +43,18 @@ export class TodoComponent implements OnInit {
     id: [null],
     listId: [null],
     backgroundColourId: [null],
+    tags: [null],
     priority: [''],
     note: ['']
   });
+  colour: any;
 
-
+  tagsFilterValues: any;
   constructor(
     private listsClient: TodoListsClient,
     private itemsClient: TodoItemsClient,
     private coloursClient: BackgroundColourClient,
+    private tagsClient: TagsClient,
     private modalService: BsModalService,
     private fb: FormBuilder
   ) { }
@@ -59,12 +71,51 @@ export class TodoComponent implements OnInit {
       error => console.error(error)
     );
 
+    this.tagsClient.get().subscribe(
+      result => {
+        this.tags = result;
+      },
+      error => console.error(error)
+    );
+
     this.coloursClient.get().subscribe(
       result => {
         this.backgroundColours = result;
       },
       error => console.error(error)
     );
+
+    if (this.tags && this.tags.length > 0) {
+      this.dropdownList = this.tags.map(x => {
+        return {
+          id: x.id,
+          tagName: x.tagName
+        }
+      })
+    }
+    this.dropdownSettings = {
+      singleSelection: false,
+      idField: 'id',
+      textField: 'tagName',
+      selectAllText: 'Select All',
+      unSelectAllText: 'UnSelect All',
+      itemsShowLimit: 3,
+      allowSearchFilter: true,
+    };
+  }
+  onSearchQuery(searchQuery: string, id: any) {
+    const matchedData = this.lists[id].items;
+    let filteredData = matchedData.filter(x => x.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    this.filteredItems = filteredData;
+    return filteredData;
+  }
+     
+  onTagsFilter( id: any) {
+    const matchedData = this.lists[id]?.items;
+    if(matchedData) {
+      let filteredData = matchedData.filter(x => x.tags?.some( t=> this.tagsFilterValues?.some(ft => ft.id == t.id)));
+      this.filteredItems = filteredData;
+    }
   }
 
   // Lists
@@ -153,12 +204,17 @@ export class TodoComponent implements OnInit {
 
     this.itemDetailsModalRef = this.modalService.show(template);
     this.itemDetailsModalRef.onHidden.subscribe(() => {
-        this.stopDeleteCountDown();
+      this.stopDeleteCountDown();
     });
   }
 
   updateItemDetails(): void {
     const item = new UpdateTodoItemDetailCommand(this.itemDetailsFormGroup.value);
+
+    item.tags = item.tags.map( x => {
+      return new TagDto(x);
+    });
+
     this.itemsClient.updateItemDetails(this.selectedItem.id, item).subscribe(
       () => {
         if (this.selectedItem.listId !== item.listId) {
@@ -171,10 +227,11 @@ export class TodoComponent implements OnInit {
           this.selectedItem.listId = item.listId;
           this.lists[listIndex].items.push(this.selectedItem);
         }
-
+       
         this.selectedItem.priority = item.priority;
-        this.selectedItem.backgroundColourId =item.backgroundColourId;
+        this.selectedItem.backgroundColourId = item.backgroundColourId;
         this.selectedItem.note = item.note;
+        this.selectedItem.tags = item.tags || [];
         this.itemDetailsModalRef.hide();
         this.itemDetailsFormGroup.reset();
       },
@@ -183,15 +240,16 @@ export class TodoComponent implements OnInit {
   }
 
   addItem() {
-    const item = new TodoItemDto( {
+    const item = new TodoItemDto({
       id: 0,
       listId: this.selectedList.id,
-      backgroundColourId:  0,
+      backgroundColourId: 0,
       priority: this.priorityLevels[0].value,
+     
       title: '',
       done: false
-    }) ;
-    
+    });
+
     this.selectedList.items.push(item);
     const index = this.selectedList.items.length - 1;
     this.editItem(item, 'itemTitle' + index);
@@ -274,4 +332,9 @@ export class TodoComponent implements OnInit {
     this.deleteCountDown = 0;
     this.deleting = false;
   }
+
+  getColour(item: any) {
+    return this.backgroundColours.find(x => x.id === item.backgroundColourId)?.colourName;
+  }
+
 }

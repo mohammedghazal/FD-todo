@@ -18,6 +18,8 @@ public class TodoItemDto : IMapFrom<TodoItem>
 
     public int BackgroundColourId { get; set; }
 
+    public int TagId { get; set; }
+
     public string? Note { get; set; }
 
     public IList<TagDto> Tags { get; private set; } = new List<TagDto>();

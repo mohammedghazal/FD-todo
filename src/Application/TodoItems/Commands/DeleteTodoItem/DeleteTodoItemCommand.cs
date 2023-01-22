@@ -28,6 +28,7 @@ public class DeleteTodoItemCommandHandler : IRequestHandler<DeleteTodoItemComman
         }
 
         _context.TodoItems.Remove(entity);
+        _
 
         entity.AddDomainEvent(new TodoItemDeletedEvent(entity));
 

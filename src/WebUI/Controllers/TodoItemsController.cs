@@ -42,7 +42,6 @@ public class TodoItemsController : ApiControllerBase
         {
             return BadRequest();
         }
-
         await Mediator.Send(command);
 
         return NoContent();

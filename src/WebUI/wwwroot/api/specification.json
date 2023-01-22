@@ -613,6 +613,13 @@
           "note": {
             "type": "string",
             "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/TagDto"
+            }
           }
         }
       },
@@ -712,6 +719,10 @@
             "format": "int32"
           },
           "backgroundColourId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tagId": {
             "type": "integer",
             "format": "int32"
           },
