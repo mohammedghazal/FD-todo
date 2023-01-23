@@ -5,8 +5,12 @@ public class TodoItem : BaseAuditableEntity
     public int ListId { get; set; }
 
     public string? Title { get; set; }
+
     public int BackgroundColourId { get; set; }
+
     public string? Note { get; set; }
+
+    public bool IsDeleted { get; set; }
 
     public PriorityLevel Priority { get; set; }
 

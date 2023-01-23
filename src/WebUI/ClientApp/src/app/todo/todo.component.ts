@@ -8,7 +8,7 @@ import {
   CreateTodoItemCommand, UpdateTodoItemDetailCommand, TagDto, CreateTagCommand
 } from '../web-api-client';
 import { IDropdownSettings, NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
- 
+
 @Component({
   selector: 'app-todo-component',
   templateUrl: './todo.component.html',
@@ -66,6 +66,7 @@ export class TodoComponent implements OnInit {
         this.priorityLevels = result.priorityLevels;
         if (this.lists.length) {
           this.selectedList = this.lists[0];
+          this.filteredItems = [...this.selectedList?.items];
         }
       },
       error => console.error(error)
@@ -103,19 +104,18 @@ export class TodoComponent implements OnInit {
       allowSearchFilter: true,
     };
   }
-  onSearchQuery(searchQuery: string, id: any) {
-    const matchedData = this.lists[id].items;
-    let filteredData = matchedData.filter(x => x.title.toLowerCase().includes(searchQuery.toLowerCase()));
-    this.filteredItems = filteredData;
-    return filteredData;
-  }
+  onSearchAndTagsFilter( id: any) {
      
-  onTagsFilter( id: any) {
-    const matchedData = this.lists[id]?.items;
-    if(matchedData) {
-      let filteredData = matchedData.filter(x => x.tags?.some( t=> this.tagsFilterValues?.some(ft => ft.id == t.id)));
-      this.filteredItems = filteredData;
+    this.filteredItems = this.lists.find(x => x.id === id)?.items;
+    console.log(this.searchQuery);
+    
+    if(!!this.searchQuery) {
+      this.filteredItems = [...this.selectedList.items.filter(x => x.title?.toLowerCase().includes(this.searchQuery?.toLowerCase()))];
+    } else {
+      this.filteredItems = [...this.selectedList.items]
     }
+  if(this.tagsFilterValues?.length)
+      this.filteredItems = this.filteredItems.filter(x => x.tags?.some(t => this.tagsFilterValues?.some(ft => ft.id == t.id)));
   }
 
   // Lists
@@ -211,7 +211,7 @@ export class TodoComponent implements OnInit {
   updateItemDetails(): void {
     const item = new UpdateTodoItemDetailCommand(this.itemDetailsFormGroup.value);
 
-    item.tags = item.tags.map( x => {
+    item.tags = item.tags.map(x => {
       return new TagDto(x);
     });
 
@@ -227,7 +227,7 @@ export class TodoComponent implements OnInit {
           this.selectedItem.listId = item.listId;
           this.lists[listIndex].items.push(this.selectedItem);
         }
-       
+
         this.selectedItem.priority = item.priority;
         this.selectedItem.backgroundColourId = item.backgroundColourId;
         this.selectedItem.note = item.note;
@@ -245,7 +245,7 @@ export class TodoComponent implements OnInit {
       listId: this.selectedList.id,
       backgroundColourId: 0,
       priority: this.priorityLevels[0].value,
-     
+
       title: '',
       done: false
     });
@@ -334,7 +334,7 @@ export class TodoComponent implements OnInit {
   }
 
   getColour(item: any) {
-    return this.backgroundColours.find(x => x.id === item.backgroundColourId)?.colourName;
+    return this.backgroundColours?.find(x => x.id === item.backgroundColourId)?.colourName;
   }
 
 }

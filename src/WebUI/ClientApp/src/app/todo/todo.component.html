@@ -15,7 +15,7 @@
           <i class="bi bi-journal-plus"></i>
         </button>
       </div>
-      
+
       <ul class="list-group">
 
         <li *ngFor="let list of lists; index as i" class="list-group-item"
@@ -44,52 +44,55 @@
       <div class="row filter-bar">
         <div class="col-sm-6">
           <div class="search-container">
-            <input type="text" placeholder="Search ..." [(ngModel)]="searchQuery" (ngModelChange)="onSearchQuery(searchQuery,selectedList.id)">
+            <input type="text" placeholder="Search ..." [(ngModel)]="searchQuery" (keyup)="onSearchAndTagsFilter(selectedList.id)">
           </div>
-          </div>
+        </div>
         <div class="col-sm-6">
-            <ng-multiselect-dropdown [placeholder]="'Select The Tags'"
-                                     [settings]="dropdownSettings"
-                                     [data]="this.tags"
-                                     (onSelect)="onTagsFilter(selectedList.id)"
-                                     (onDeSelect)="onTagsFilter(selectedList.id)"
-                                     [(ngModel)]="tagsFilterValues">
-            </ng-multiselect-dropdown>
-        </div>
-        </div>
-        
-          <ul id="todo-items" class="list-group mb-2">
-            <li class="list-group-item" *ngFor="let item of filteredItems.length == 0 ? selectedList.items : filteredItems ; index as i" [style.background-color]="getColour(item)">
-              <div class="d-flex">
-                <div class="todo-item-checkbox">
-                  <input type="checkbox" [(ngModel)]="item.done" (change)="updateItem(item)"/>
-                </div>
-                <div class="flex-fill">
-                  <input id="{{ 'itemTitle' + i }}" *ngIf="item == selectedItem" type="text"
-                         class="form-control item-input-control" [(ngModel)]="item.title" (keyup.enter)="updateItem(item, true)"
-                         (blur)="updateItem(item)" autofocus="autofocus" />
-                  <div class="todo-item-title" *ngIf="item != selectedItem" [ngClass]="{ 'done-todo': item.done }"
-                       (click)="editItem(item, 'itemTitle' + i)" class="form-control item-input-control">
-                    <span>
-                      {{item.title}}
-                    </span>
-                  </div>
-                </div>
-                <div class="todo-item-commands">
-                  <button *ngIf="item.id != 0" (click)="showItemDetailsModal(itemDetailsModalTemplate, item)"
-                          class="btn btn-default btn-xs" role="button">
-                    <i class="bi bi-three-dots-vertical"></i>
-                  </button>
-                </div>
-              </div>
-            </li>
-            <li class="list-group-item" (click)="addItem()">
-              <button class="btn btn-default">Add Item...</button>
-            </li>
-          </ul>
+          <ng-multiselect-dropdown [placeholder]="'Select The Tags'"
+                                   [settings]="dropdownSettings"
+                                   [data]="this.tags"
+                                   (onSelect)="onSearchAndTagsFilter(selectedList.id)"
+                                   (onDeSelect)="onSearchAndTagsFilter(selectedList.id)"
+                                   [(ngModel)]="tagsFilterValues">
+          </ng-multiselect-dropdown>
         </div>
       </div>
+
+      <ul id="todo-items" class="list-group mb-2">
+        <li class="list-group-item" *ngFor="let item of filteredItems ; index as i" [style.background-color]="getColour(item)">
+          <div class="d-flex">
+            <div class="todo-item-checkbox">
+              <input type="checkbox" [(ngModel)]="item.done" (change)="updateItem(item)" />
+            </div>
+            <div class="flex-fill">
+              <input id="{{ 'itemTitle' + i }}" *ngIf="item == selectedItem" type="text"
+                     class="form-control item-input-control" [(ngModel)]="item.title" (keyup.enter)="updateItem(item, true)"
+                     (blur)="updateItem(item)" autofocus="autofocus" />
+              <div class="todo-item-title" *ngIf="item != selectedItem" [ngClass]="{ 'done-todo': item.done }"
+                   (click)="editItem(item, 'itemTitle' + i)" class="form-control item-input-control">
+                <span>
+                  {{item.title}} 
+                </span>
+              </div>
+            </div>
+            <div class="list-group-item" *ngFor="let tag of item.tags" class="badge badge-pill badge-dark">
+              <span >{{tag.tagName}}</span>
+            </div>
+            <div class="todo-item-commands">
+              <button *ngIf="item.id != 0" (click)="showItemDetailsModal(itemDetailsModalTemplate, item)"
+                      class="btn btn-default btn-xs" role="button">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+            </div>
+          </div>
+        </li>
+        <li class="list-group-item" (click)="addItem()">
+          <button class="btn btn-default">Add Item...</button>
+        </li>
+      </ul>
     </div>
+  </div>
+</div>
 
 <div *ngIf="debug">
   <pre>{{ lists | json }}</pre>
@@ -149,13 +152,12 @@
 
 
       <div class="form-group">
-        <ng-multiselect-dropdown 
-                                 [placeholder]="'Select The Tags'"
+        <ng-multiselect-dropdown [placeholder]="'Select The Tags'"
                                  [settings]="dropdownSettings"
                                  [data]="this.tags"
                                  formControlName="tags">
         </ng-multiselect-dropdown>
-      </div>       
+      </div>
 
       <div class="form-group">
         <label for="priority">Priority</label>
