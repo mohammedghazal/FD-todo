@@ -25,7 +25,7 @@
               {{ list.title }}
             </div>
             <div class="float-end text-right">
-              <span class="badge badge-light">{{ remainingItems(list) }}</span>
+              <span class="badge badge-light">{{ onSearchAndTagsFilter() }}</span>
             </div>
           </div>
         </li>
@@ -44,15 +44,15 @@
       <div class="row filter-bar">
         <div class="col-sm-6">
           <div class="search-container">
-            <input type="text" placeholder="Search ..." [(ngModel)]="searchQuery" (keyup)="onSearchAndTagsFilter(selectedList.id)">
+            <input type="text" placeholder="Search ..." [(ngModel)]="searchQuery" (keyup)="onSearchAndTagsFilter()">
           </div>
         </div>
         <div class="col-sm-6">
           <ng-multiselect-dropdown [placeholder]="'Select The Tags'"
                                    [settings]="dropdownSettings"
                                    [data]="this.tags"
-                                   (onSelect)="onSearchAndTagsFilter(selectedList.id)"
-                                   (onDeSelect)="onSearchAndTagsFilter(selectedList.id)"
+                                   (onSelect)="onSearchAndTagsFilter()"
+                                   (onDeSelect)="onSearchAndTagsFilter()"
                                    [(ngModel)]="tagsFilterValues">
           </ng-multiselect-dropdown>
         </div>
@@ -75,7 +75,7 @@
                 </span>
               </div>
             </div>
-            <div class="list-group-item" *ngFor="let tag of item.tags" class="badge badge-pill badge-dark">
+            <div class="list-group-item" *ngFor="let tag of item.tags" class="badge badge-pill badge-secondary">
               <span >{{tag.tagName}}</span>
             </div>
             <div class="todo-item-commands">

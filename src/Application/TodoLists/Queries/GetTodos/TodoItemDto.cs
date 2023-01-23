@@ -20,6 +20,8 @@ public class TodoItemDto : IMapFrom<TodoItem>
 
     public int TagId { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public string? Note { get; set; }
 
     public IList<TagDto> Tags { get; private set; } = new List<TagDto>();

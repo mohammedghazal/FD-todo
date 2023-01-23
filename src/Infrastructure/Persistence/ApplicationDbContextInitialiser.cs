@@ -107,8 +107,11 @@ public class ApplicationDbContextInitialiser
         if (!_context.Tags.Any())
         {
             _context.Tags.AddRange(
-                new Tag { TagName = "in progress" },
-                new Tag { TagName = "school" }
+                new Tag { TagName = "health" },
+                new Tag { TagName = "sport" } ,
+                new Tag { TagName = "entertainment" },
+                new Tag { TagName = "study" },
+                new Tag { TagName = "work" }
         );
 
             await _context.SaveChangesAsync();

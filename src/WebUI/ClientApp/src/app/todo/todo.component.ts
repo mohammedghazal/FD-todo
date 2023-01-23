@@ -64,9 +64,10 @@ export class TodoComponent implements OnInit {
       result => {
         this.lists = result.lists;
         this.priorityLevels = result.priorityLevels;
-        if (this.lists.length) {
-          this.selectedList = this.lists[0];
-          this.filteredItems = [...this.selectedList?.items];
+        if (this.lists.length) {;
+          this.selectedList = this.lists[1];
+         
+          this.filteredItems = this.selectedList.items.filter(x => !x.done && x.isDeleted == false);
         }
       },
       error => console.error(error)
@@ -104,23 +105,27 @@ export class TodoComponent implements OnInit {
       allowSearchFilter: true,
     };
   }
-  onSearchAndTagsFilter( id: any) {
-     
-    this.filteredItems = this.lists.find(x => x.id === id)?.items;
-    console.log(this.searchQuery);
+  onSearchAndTagsFilter() {
     
     if(!!this.searchQuery) {
-      this.filteredItems = [...this.selectedList.items.filter(x => x.title?.toLowerCase().includes(this.searchQuery?.toLowerCase()))];
+      this.filteredItems = [...this.selectedList.items.filter(x => x.title?.toLowerCase().includes(this.searchQuery?.toLowerCase()) &&  x.isDeleted == false ) ];
+     
     } else {
-      this.filteredItems = [...this.selectedList.items]
+      this.filteredItems = this.selectedList.items.filter(x => x.isDeleted == false);
+         
     }
   if(this.tagsFilterValues?.length)
-      this.filteredItems = this.filteredItems.filter(x => x.tags?.some(t => this.tagsFilterValues?.some(ft => ft.id == t.id)));
+    this.filteredItems = this.filteredItems.filter(x => x.tags?.some(t => this.tagsFilterValues?.some(ft => ft.id == t.id)) && x.isDeleted == false);
+   
+
   }
 
   // Lists
   remainingItems(list: TodoListDto): number {
-    return list.items.filter(t => !t.done).length;
+   
+    const remainingItems = this.selectedList.items.filter(x => !x.done && x.isDeleted == false);
+    
+    return remainingItems.length;
   }
 
   showNewListModal(template: TemplateRef<any>): void {
@@ -165,8 +170,9 @@ export class TodoComponent implements OnInit {
       id: this.selectedList.id,
       title: this.selectedList.title
     };
-
+ 
     this.listOptionsModalRef = this.modalService.show(template);
+ 
   }
 
   updateListOptions() {
@@ -201,7 +207,7 @@ export class TodoComponent implements OnInit {
   showItemDetailsModal(template: TemplateRef<any>, item: TodoItemDto): void {
     this.selectedItem = item;
     this.itemDetailsFormGroup.patchValue(this.selectedItem);
-
+   
     this.itemDetailsModalRef = this.modalService.show(template);
     this.itemDetailsModalRef.onHidden.subscribe(() => {
       this.stopDeleteCountDown();
@@ -245,19 +251,20 @@ export class TodoComponent implements OnInit {
       listId: this.selectedList.id,
       backgroundColourId: 0,
       priority: this.priorityLevels[0].value,
-
       title: '',
-      done: false
+      done: false,
+      isDeleted: false
     });
 
     this.selectedList.items.push(item);
+    this.onSearchAndTagsFilter()
     const index = this.selectedList.items.length - 1;
     this.editItem(item, 'itemTitle' + index);
   }
 
   editItem(item: TodoItemDto, inputId: string): void {
     this.selectedItem = item;
-    setTimeout(() => document.getElementById(inputId).focus(), 100);
+    setTimeout(() => document.getElementById(inputId), 100);
   }
 
   updateItem(item: TodoItemDto, pressedEnter: boolean = false): void {

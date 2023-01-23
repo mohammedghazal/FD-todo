@@ -726,6 +726,9 @@
             "type": "integer",
             "format": "int32"
           },
+          "isDeleted": {
+            "type": "boolean"
+          },
           "note": {
             "type": "string",
             "nullable": true

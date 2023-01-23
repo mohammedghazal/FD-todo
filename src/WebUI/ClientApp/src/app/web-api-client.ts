@@ -1400,6 +1400,7 @@ export class TodoItemDto implements ITodoItemDto {
     priority?: number;
     backgroundColourId?: number;
     tagId?: number;
+    isDeleted?: boolean;
     note?: string | undefined;
     tags?: TagDto[];
 
@@ -1421,6 +1422,7 @@ export class TodoItemDto implements ITodoItemDto {
             this.priority = _data["priority"];
             this.backgroundColourId = _data["backgroundColourId"];
             this.tagId = _data["tagId"];
+            this.isDeleted = _data["isDeleted"];
             this.note = _data["note"];
             if (Array.isArray(_data["tags"])) {
                 this.tags = [] as any;
@@ -1446,6 +1448,7 @@ export class TodoItemDto implements ITodoItemDto {
         data["priority"] = this.priority;
         data["backgroundColourId"] = this.backgroundColourId;
         data["tagId"] = this.tagId;
+        data["isDeleted"] = this.isDeleted;
         data["note"] = this.note;
         if (Array.isArray(this.tags)) {
             data["tags"] = [];
@@ -1464,6 +1467,7 @@ export interface ITodoItemDto {
     priority?: number;
     backgroundColourId?: number;
     tagId?: number;
+    isDeleted?: boolean;
     note?: string | undefined;
     tags?: TagDto[];
 }
